@@ -20,6 +20,14 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
+                },
+                {
+                    "name": "Dash",
+                    "type": "Button",
+                    "id": "0e366c91-c4e7-47cd-9767-a5df240941ab",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -37,7 +45,7 @@
                 {
                     "name": "negative",
                     "id": "658a9e34-ff24-4ddd-8fe9-79c10e1c8dc5",
-                    "path": "<Keyboard>/a",
+                    "path": "<Keyboard>/leftArrow",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -48,7 +56,7 @@
                 {
                     "name": "positive",
                     "id": "274a0543-3df3-4c2c-9662-b8e50c80e44d",
-                    "path": "<Keyboard>/d",
+                    "path": "<Keyboard>/rightArrow",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -59,11 +67,22 @@
                 {
                     "name": "",
                     "id": "0138e5d5-d225-4f72-9437-7a2ea58875e4",
-                    "path": "<Keyboard>/space",
+                    "path": "<Keyboard>/z",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4d56aac7-13b4-49b0-afdc-3c4c17bad3ea",
+                    "path": "<Keyboard>/c",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Dash",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

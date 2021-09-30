@@ -11,11 +11,12 @@ public class Player_Movement : MonoBehaviour
     [SerializeField]private LayerMask groundLayer;
     [SerializeField] private LayerMask wallLayer;
     private BoxCollider2D bxC2D;
-    private float inputMovement;
+    public float inputMovement { get; private set; }
     [Header("Movement")]
     public float moveSpeed;
     public float jumpForce;
     private bool isGrounded;
+    private bool isFacingRight;
     [Header("Wall Jump")]
     public float wallJumpForceX;
     public float wallJumpForceY;
@@ -23,7 +24,13 @@ public class Player_Movement : MonoBehaviour
     private bool isWallSliding;
     private float wallJumpTime = 0.2f;
     private float jumpTime;
-
+    [Header("Dash")]
+    public float dashSpeed;
+    public float dashLenght;
+    public float dashCooldown;
+    private float dashTimer;
+    private bool isDashing;
+    private bool canDash;
     private void Awake()
     {
         inputs = new MasterInput(); // init master input.
@@ -36,9 +43,18 @@ public class Player_Movement : MonoBehaviour
     private void OnEnable()
     {
         inputs.Player.Jump.performed += Jumped; // subscribe to methods.
+        inputs.Player.Dash.performed += Dashed;
         inputs.Enable(); // enable input
     }
 
+    
+
+    private void OnDisable()
+    {
+        inputs.Player.Jump.performed -= Jumped; 
+        inputs.Player.Dash.performed -= Dashed;
+        inputs.Disable();
+    }
     private void Jumped(InputAction.CallbackContext ctx)
     {
         if (ctx.performed)
@@ -46,12 +62,19 @@ public class Player_Movement : MonoBehaviour
             Jump();
         }
     }
-
-    private void OnDisable()
+    private void Dashed(InputAction.CallbackContext ctx)
     {
-        inputs.Player.Jump.performed -= Jumped; 
-        inputs.Disable();
+        if (ctx.performed)
+        {
+            if (Time.time > dashTimer)
+            {
+                dashTimer = Time.time + dashCooldown;
+                StartCoroutine(Dash(inputMovement, 0));
+                Debug.Log("dashed");
+            }
+        }
     }
+
     private void Update()
     {
         isGrounded = GroundCheck();
@@ -59,22 +82,28 @@ public class Player_Movement : MonoBehaviour
     private void FixedUpdate()
     {
         // Player movement.
-        inputMovement = inputs.Player.Movement.ReadValue<float>();
-        rb.velocity = new Vector2(inputMovement * moveSpeed, rb.velocity.y);
-        // wall slide and jump
-        if(WallCheck() && !isGrounded)
+        if (!isDashing)
         {
-            isWallSliding = true;
-            jumpTime = Time.time + wallJumpTime;
+            inputMovement = inputs.Player.Movement.ReadValue<float>();
+            rb.velocity = new Vector2(inputMovement * moveSpeed, rb.velocity.y);
+            // wall slide and jump
+            if (WallCheck() && !isGrounded)
+            {
+                isWallSliding = true;
+                jumpTime = Time.time + wallJumpTime;
+            }
+            else if (jumpTime < Time.time)
+            {
+                isWallSliding = false;
+            }
+            if (isWallSliding && !isGrounded)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlidingSpeed, float.MaxValue));
+            }
         }
-        else if(jumpTime < Time.time)
-        {
-            isWallSliding = false;
-        }
-        if (isWallSliding && !isGrounded)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlidingSpeed, float.MaxValue));
-        }
+        if (inputMovement < 0) isFacingRight = false;
+        else isFacingRight = true;
+        
     }
     private void Jump()
     {
@@ -82,10 +111,26 @@ public class Player_Movement : MonoBehaviour
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce); // jump
         }
-        /*else if (isWallSliding && !isGrounded)
+    }
+    IEnumerator Dash(float x,float y)
+    {
+        float dashStarttime = Time.time;
+        isDashing = true;
+        rb.velocity = Vector2.zero;
+
+        Vector2 direction;
+        if (x != 0 || y != 0) direction = new Vector2(x, y);
+        else
         {
-            rb.velocity = new Vector2(-inputMovement * wallJumpForceX,wallJumpForceY);
-        }*/
+            if (isFacingRight) direction = new Vector2(1,0);
+            else direction = new Vector2(-1,0);
+        }
+        while(Time.time < dashStarttime + dashLenght)
+        {
+            rb.velocity = direction.normalized * dashSpeed;
+            yield return null;
+        }
+        isDashing = false;
     }
     
 
